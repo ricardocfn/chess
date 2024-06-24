@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 Int         @id @default(autoincrement())
+  username           String      @unique
+  email              String      @unique
+  password           String
+  balance            Float       @default(0)
+  level              Level       @default(BEGINNER)
+  wins               Int         @default(0)
+  losses             Int         @default(0)
+  draws              Int         @default(0)
+  totalMatches       Int         @default(0)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  challenges         Challenge[] @relation("challenges")
+  acceptedChallenges Challenge[] @relation("challenged")
+  wonChallenges      Challenge[] @relation("winner")
+}
+
+model Challenge {
+  id           Int      @id @default(autoincrement())
+  challengerId Int
+  opponentId   Int?
+  stake        Float
+  status       Status   @default(PENDING)
+  winnerId     Int?
+  gameId       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  challenger   User     @relation("challenges", fields: [challengerId], references: [id])
+  opponent     User?    @relation("challenged", fields: [opponentId], references: [id])
+  winner       User?    @relation("winner", fields: [winnerId], references: [id])
+}
+
+enum Level {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum Status {
+  PENDING
+  ACCEPTED
+  DECLINED
+  IN_PROGRESS
+  FINISHED
+}
